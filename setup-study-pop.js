@@ -163,12 +163,12 @@ export default {
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>`,
 
-  // src/main.tsx
-  'src/main.tsx': `import React from "react";
+  // src/index.tsx
+  'src/index.tsx': `import React from "react";
 import ReactDOM from "react-dom/client";
 import Index from "./pages/Index";
 import "./index.css";
