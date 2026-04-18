@@ -1,27 +1,8 @@
 import { useState } from "react";
-import { CalendarIcon, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { CalendarIcon, Plus, X } from "lucide-react";
+import { format } from "date-fns";
 import { EXAM_COLORS, type Exam, type ExamColor } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 
 interface AddExamDialogProps {
   onAdd: (exam: Omit<Exam, "id">) => void;
@@ -53,92 +34,171 @@ export function AddExamDialog({ onAdd }: AddExamDialogProps) {
     setNotes("");
   };
 
+  // Simple date picker popup
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const [viewYear, setViewYear] = useState(new Date().getFullYear());
+  const [viewMonth, setViewMonth] = useState(new Date().getMonth());
+
+  const handleDateSelect = (day: number) => {
+    setDate(new Date(viewYear, viewMonth, day));
+    setShowDatePicker(false);
+  };
+
+  const renderCalendar = () => {
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const days = daysInMonth(viewYear, viewMonth);
+    const blanks = Array(firstDay).fill(null);
+    const dayNumbers = Array.from({ length: days }, (_, i) => i + 1);
+    const allCells = [...blanks, ...dayNumbers];
+    const rows = [];
+    for (let i = 0; i < allCells.length; i += 7) {
+      rows.push(allCells.slice(i, i + 7));
+    }
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4 absolute top-full left-0 mt-2 z-50 w-64">
+        <div className="flex justify-between items-center mb-3">
+          <button type="button" onClick={() => setViewMonth(prev => prev - 1)} className="p-1 hover:bg-gray-100 rounded">←</button>
+          <span>{new Date(viewYear, viewMonth).toLocaleString('default', { month: 'long' })} {viewYear}</span>
+          <button type="button" onClick={() => setViewMonth(prev => prev + 1)} className="p-1 hover:bg-gray-100 rounded">→</button>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500 mb-1">
+          {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => <div key={d}>{d}</div>)}
+        </div>
+        {rows.map((row, idx) => (
+          <div key={idx} className="grid grid-cols-7 gap-1">
+            {row.map((cell, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => typeof cell === 'number' && handleDateSelect(cell)}
+                className={cn(
+                  "h-8 w-8 rounded-full text-sm",
+                  typeof cell === 'number' ? "hover:bg-primary/20" : "invisible",
+                  date && cell === date.getDate() && viewMonth === date.getMonth() && viewYear === date.getFullYear() && "bg-primary text-white"
+                )}
+              >
+                {cell}
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const colorStyle: Record<ExamColor, string> = {
+    primary: "#8B5CF6",
+    secondary: "#EC4899",
+    accent: "#10B981",
+    highlight: "#06B6D4",
+    sunshine: "#FBBF24",
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="rounded-full shadow-soft">
-          <Plus className="mr-2 h-4 w-4" /> Add Exam
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-3xl">
-        <DialogHeader>
-          <DialogTitle>Add New Exam</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject *</Label>
-            <Input
-              id="subject"
-              placeholder="e.g., Mathematics 101"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Exam Date *</Label>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              fromDate={new Date()}
-              className="rounded-2xl border shadow-sm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="difficulty">Difficulty (1-5)</Label>
-            <Select
-              value={difficulty.toString()}
-              onValueChange={(v) => setDifficulty(Number(v) as 1 | 2 | 3 | 4 | 5)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5].map((d) => (
-                  <SelectItem key={d} value={d.toString()}>
-                    {"★".repeat(d)}{"★".repeat(5 - d)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="color">Color Theme</Label>
-            <div className="flex flex-wrap gap-2">
-              {EXAM_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={cn(
-                    "h-8 w-8 rounded-full transition-all",
-                    color === c && "ring-2 ring-offset-2 ring-foreground"
-                  )}
-                  style={{
-                    backgroundColor: `hsl(var(--${c === "primary" ? "primary" : c === "secondary" ? "secondary" : c === "accent" ? "accent" : c === "highlight" ? "highlight" : c === "sunshine" ? "sunshine" : "destructive"}))`,
-                  }}
-                  onClick={() => setColor(c)}
-                />
-              ))}
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-full shadow-soft bg-primary text-white px-5 py-2.5 font-medium flex items-center gap-2 hover:bg-primary/90 transition-all"
+      >
+        <Plus className="h-4 w-4" /> Add Exam
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-md shadow-pop">
+            <div className="flex justify-between items-center p-5 border-b">
+              <h2 className="text-xl font-semibold">Add New Exam</h2>
+              <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="h-5 w-5" />
+              </button>
             </div>
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Subject *</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Mathematics 101"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-1 relative">
+                <label className="text-sm font-medium">Exam Date *</label>
+                <button
+                  type="button"
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className="w-full flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2 text-left"
+                >
+                  <span>{date ? format(date, "PPP") : "Select date"}</span>
+                  <CalendarIcon className="h-4 w-4 text-gray-400" />
+                </button>
+                {showDatePicker && renderCalendar()}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Difficulty (1-5)</label>
+                <div className="flex gap-2">
+                  {[1,2,3,4,5].map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDifficulty(d as 1|2|3|4|5)}
+                      className={cn(
+                        "flex-1 py-2 rounded-xl font-medium transition-all",
+                        difficulty === d ? "bg-primary text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-700"
+                      )}
+                    >
+                      {"★".repeat(d)}{"★".repeat(5-d)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Color Theme</label>
+                <div className="flex flex-wrap gap-2">
+                  {EXAM_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={cn(
+                        "h-8 w-8 rounded-full transition-all",
+                        color === c && "ring-2 ring-offset-2 ring-gray-400"
+                      )}
+                      style={{ backgroundColor: colorStyle[c] }}
+                      onClick={() => setColor(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Notes (optional)</label>
+                <textarea
+                  placeholder="Any extra info..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-100">
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary/90">
+                  Add Exam
+                </button>
+              </div>
+            </form>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
-            <Textarea
-              id="notes"
-              placeholder="Any extra info..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Exam</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      )}
+    </>
   );
 }
