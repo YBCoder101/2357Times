@@ -141,17 +141,7 @@ function removeSubject(subjectId) {
   showToast('Subject removed.');
 }
 
-/* ── START DATES ─────────────────────────────────────────────── */
 
-/**
- * Update the start date for a subject.
- * @param {string} subjectId
- * @param {string} isoDate
- */
-function setStartDate(subjectId, isoDate) {
-  startDates[subjectId] = isoDate;
-  localStorage.setItem('study2357_startDates', JSON.stringify(startDates));
-}
 
 /* ── EXAM MANAGEMENT ─────────────────────────────────────────── */
 
