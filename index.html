@@ -19,9 +19,9 @@
         <span class="logo-name">StudyPlanner</span>
       </div>
       <nav class="tab-nav" role="tablist">
-        <button class="tab-btn active" data-tab="setup" role="tab">Setup</button>
-        <button class="tab-btn" data-tab="timetable" role="tab">Timetable</button>
-        <button class="tab-btn" data-tab="tracker" role="tab">Progress</button>
+        <button class="tab-btn active" data-tab="setup"     role="tab">Setup</button>
+        <button class="tab-btn"        data-tab="timetable" role="tab">Timetable</button>
+        <button class="tab-btn"        data-tab="tracker"   role="tab">Progress</button>
       </nav>
     </div>
   </header>
@@ -33,10 +33,9 @@
     <section id="tab-setup" class="tab-panel active" role="tabpanel">
       <div class="panel-intro">
         <h1 class="panel-title">Plan your matric revision</h1>
-        <p class="panel-sub">The <strong>2-3-5-7 method</strong> means you revise each topic on day 2, day 5, day 10, and day 17 after you first study it — spacing repetition so your brain actually keeps the work.</p>
+        <p class="panel-sub">The <strong>2-3-5-7 method</strong> means you revise each topic on day 2, day 5, day 10, and day 17 after you first study it — spacing repetition so your brain actually retains the work.</p>
       </div>
 
-      <!-- Subject builder -->
       <div class="card" id="subject-card">
         <h2 class="card-title">Your subjects</h2>
         <div id="subject-list" class="subject-list"></div>
@@ -48,17 +47,15 @@
         <p class="field-hint">Add all the subjects you are studying for matric.</p>
       </div>
 
-      <!-- Session date picker -->
       <div class="card" id="date-card">
         <h2 class="card-title">When did you first study each topic?</h2>
         <p class="field-hint">For each subject, pick the date you first covered the work. The planner will calculate your four revision sessions automatically.</p>
         <div id="date-list" class="date-list"></div>
       </div>
 
-      <!-- Exam dates -->
       <div class="card" id="exam-card">
         <h2 class="card-title">Exam dates <span class="optional-label">(optional)</span></h2>
-        <p class="field-hint">Add your exam dates so they appear as markers on your timetable.</p>
+        <p class="field-hint">Add your exam dates so they appear on your timetable and the countdown banner.</p>
         <div id="exam-list" class="exam-list"></div>
         <div class="add-subject-row">
           <select id="exam-subject-select" class="text-input select-input"></select>
@@ -76,11 +73,17 @@
     <section id="tab-timetable" class="tab-panel" role="tabpanel">
       <div class="panel-intro">
         <h1 class="panel-title">Your revision timetable</h1>
-        <p class="panel-sub">Sessions are spaced using the 2-3-5-7 method. Tick them off as you go in the Progress tab.</p>
+        <p class="panel-sub">Sessions spaced using the 2-3-5-7 method. Start a Pomodoro timer on any session, or print a wall calendar.</p>
       </div>
+
+      <!-- Exam countdown banner -->
+      <div id="countdown-timetable" class="countdown-row" style="display:none"></div>
+
       <div class="timetable-controls">
-        <button class="btn btn-secondary" id="export-btn">⬇ Export to CSV</button>
+        <button class="btn btn-secondary" id="print-btn">🖨 Print calendar</button>
+        <button class="btn btn-secondary" id="export-btn">⬇ Export CSV</button>
       </div>
+
       <div id="timetable-output" class="timetable-output"></div>
     </section>
 
@@ -90,6 +93,10 @@
         <h1 class="panel-title">Track your progress</h1>
         <p class="panel-sub">Mark sessions as done. Your overall completion is shown below.</p>
       </div>
+
+      <!-- Exam countdown banner -->
+      <div id="countdown-tracker" class="countdown-row" style="display:none"></div>
+
       <div class="progress-summary-row">
         <div class="stat-card">
           <span class="stat-label">Total sessions</span>
@@ -119,10 +126,15 @@
   <!-- ===== TOAST ===== -->
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
-  <!-- ===== SCRIPTS (load order matters) ===== -->
+  <!-- Pomodoro modal injected by pomodoro.js -->
+
+  <!-- ===== SCRIPTS ===== -->
   <script src="js/storage.js"></script>
   <script src="js/scheduler.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/pomodoro.js"></script>
+  <script src="js/countdown.js"></script>
+  <script src="js/print.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -191,6 +191,7 @@ function renderTimetable(weekGroups, completed) {
         const textColor = isDone ? 'var(--success)' : s.subjectColor;
 
         return `<span class="session-chip"
+          data-subject="${escapeHTML(s.subjectName)}"
           style="background:${bg}; border-color:${border}; color:${textColor};">
           ${escapeHTML(s.subjectName)}
           <span class="session-round">${s.roundLabel}</span>
