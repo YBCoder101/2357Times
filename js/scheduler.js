@@ -1,23 +1,22 @@
 /* ============================================================
    scheduler.js
-   Pure functions that calculate revision session dates.
 
-   THE 2-3-5-7 METHOD (counting backwards from exam):
+   THE 2-3-5-7 METHOD — counting backwards from exam day:
 
-   Exam day  = Day 0
-   4th revision  = 1 day before exam      (Exam - 1)
-   3rd revision  = 2 days before that     (Exam - 3)
-   2nd revision  = 3 days before that     (Exam - 6)
-   1st revision  = 5 days before that     (Exam - 11)
-   Initial study = 7 days before that     (Exam - 18)
+   Exam day         = Day 0
+   4th revision     = Exam - 1   (day before exam)
+   3rd revision     = Exam - 3   (2 days before 4th revision)
+   2nd revision     = Exam - 6   (3 days before 3rd revision)
+   1st revision     = Exam - 11  (5 days before 2nd revision)
+   Initial study    = Exam - 18  (7 days before 1st revision)
 
-   So the schedule is:
-     Exam - 18 = Initial study
-     Exam - 11 = 1st revision  (+7 days from initial)
-     Exam - 6  = 2nd revision  (+5 days from 1st)
-     Exam - 3  = 3rd revision  (+3 days from 2nd)
-     Exam - 1  = 4th revision  (+2 days from 3rd)
-     Exam - 0  = Exam
+   Example: Biology exam 25 May
+     Initial study  → 25 - 18 =  7 May
+     1st revision   → 25 - 11 = 14 May
+     2nd revision   → 25 - 6  = 19 May
+     3rd revision   → 25 - 3  = 22 May
+     4th revision   → 25 - 1  = 24 May
+     Exam           → 25 May
    ============================================================ */
 
 const SESSION_PLAN = [
@@ -58,14 +57,6 @@ function getDayName(date) {
 
 /* ── CORE SCHEDULER ─────────────────────────────────────────── */
 
-/**
- * Generate the 5 study sessions for one subject, working
- * backwards from its exam date.
- *
- * @param {Object} subject  - { id, name, color }
- * @param {string} examISO  - ISO date string of the exam
- * @returns {Array}         - session objects in chronological order
- */
 function generateSessionsForSubject(subject, examISO) {
   const examDate = new Date(examISO + 'T00:00:00');
 
@@ -85,21 +76,13 @@ function generateSessionsForSubject(subject, examISO) {
   });
 }
 
-/**
- * Generate all sessions for all subjects from their exam dates.
- * @param {Array} subjects
- * @param {Array} exams    - [{ subjectId, date }]
- * @returns {Array}        - all sessions sorted chronologically
- */
 function generateAllSessions(subjects, exams) {
   const allSessions = [];
-
   subjects.forEach(subject => {
     const exam = exams.find(e => e.subjectId === subject.id);
     if (!exam) return;
     allSessions.push(...generateSessionsForSubject(subject, exam.date));
   });
-
   allSessions.sort((a, b) => a.dateISO.localeCompare(b.dateISO));
   return allSessions;
 }
