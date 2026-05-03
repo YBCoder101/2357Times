@@ -20,11 +20,12 @@
    ============================================================ */
 
 const SESSION_PLAN = [
-  { offsetFromExam: 18, label: 'Initial study', round: 0 },
-  { offsetFromExam: 11, label: '1st revision',  round: 1 },
-  { offsetFromExam: 6,  label: '2nd revision',  round: 2 },
-  { offsetFromExam: 3,  label: '3rd revision',  round: 3 },
-  { offsetFromExam: 1,  label: '4th revision',  round: 4 },
+  { offsetFromExam: 19, label: 'Initial study', round: 0 },
+  { offsetFromExam: 17, label: '1st revision',  round: 1 },
+  { offsetFromExam: 10,  label: '2nd revision',  round: 2 },
+  { offsetFromExam: 5,  label: '3rd revision',  round: 3 },
+  { offsetFromExam: 2,  label: '4th revision',  round: 4 },
+  { offsetFromExam: 0,  label: '4th revision',  round: 4 },
 ];
 
 /* ── DATE HELPERS ───────────────────────────────────────────── */
