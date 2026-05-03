@@ -50,44 +50,6 @@ function renderSubjectList(subjects, onRemove) {
   });
 }
 
-/* ── SETUP TAB: DATE LIST ───────────────────────────────────── */
-
-/**
- * Render one date-picker row per subject.
- * @param {Array}    subjects    - [{ id, name, color }]
- * @param {Object}   startDates  - { [subjectId]: isoDate }
- * @param {Function} onChange    - callback(subjectId, isoDate)
- */
-function renderDateList(subjects, startDates, onChange) {
-  const container = document.getElementById('date-list');
-  container.innerHTML = '';
-
-  if (subjects.length === 0) {
-    container.innerHTML = '<p class="empty-hint">Add subjects above first.</p>';
-    return;
-  }
-
-  subjects.forEach(subject => {
-    const item = document.createElement('div');
-    item.className = 'date-item';
-    item.innerHTML = `
-      <span class="subject-dot" style="background:${subject.color}"></span>
-      <span class="subject-name">${escapeHTML(subject.name)}</span>
-      <label for="date-${subject.id}">First studied on</label>
-      <input
-        type="date"
-        id="date-${subject.id}"
-        class="text-input date-input"
-        value="${startDates[subject.id] || ''}"
-      />
-    `;
-    item.querySelector('input').addEventListener('change', e => {
-      onChange(subject.id, e.target.value);
-    });
-    container.appendChild(item);
-  });
-}
-
 /* ── SETUP TAB: EXAM LIST ───────────────────────────────────── */
 
 /**
