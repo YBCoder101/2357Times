@@ -1,128 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Study2357 — Matric Study Planner</title>
+  <title>2357 Study Journal · soft planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
+  <!-- pastel background orbs -->
+  <div class="bg-orb bg-orb--1"></div>
+  <div class="bg-orb bg-orb--2"></div>
+  <div class="bg-orb bg-orb--3"></div>
+
   <header class="site-header">
     <div class="header-inner">
       <div class="logo">
         <span class="logo-mark">2357</span>
-        <span class="logo-name">StudyPlanner</span>
+        <span class="logo-dot"></span>
+        <span class="logo-sub">study journal</span>
       </div>
       <nav class="tab-nav" role="tablist">
-        <button class="tab-btn active" data-tab="setup"     role="tab">Setup</button>
-        <button class="tab-btn"        data-tab="timetable" role="tab">Timetable</button>
-        <button class="tab-btn"        data-tab="tracker"   role="tab">Progress</button>
+        <button class="tab-btn active" data-tab="setup" role="tab">setup</button>
+        <button class="tab-btn" data-tab="timetable" role="tab">timetable</button>
+        <button class="tab-btn" data-tab="tracker" role="tab">progress</button>
       </nav>
     </div>
   </header>
 
-  <!-- ===== MAIN ===== -->
   <main class="main-content">
 
-    <!-- TAB: SETUP -->
+    <!-- SETUP TAB -->
     <section id="tab-setup" class="tab-panel active" role="tabpanel">
-      <div class="panel-intro">
-        <h1 class="panel-title">Plan your matric revision</h1>
-        <p class="panel-sub">Add your subjects and their exam dates. The <strong>2-3-5-7 method</strong> will automatically schedule your initial study and four revision sessions — counting back from your exam so your final review is just 2 days before.</p>
+      <div class="panel-hero">
+        <p class="hero-eyebrow">spaced repetition · gentle edition</p>
+        <h1 class="hero-title">study slower,<br>remember more.</h1>
+        <p class="hero-sub">Add your subjects and exam dates. The 2‑3‑5‑7 method weaves a calm revision schedule backwards from each exam.</p>
       </div>
 
-      <div class="card" id="subject-card">
-        <h2 class="card-title">Your subjects</h2>
-        <div id="subject-list" class="subject-list"></div>
-        <div class="add-subject-row">
-          <input type="text" id="subject-input" class="text-input" placeholder="e.g. Mathematics" maxlength="40"/>
-          <input type="color" id="subject-color" class="color-picker" value="#5a67d8" title="Pick a colour for this subject"/>
-          <button class="btn btn-primary" id="add-subject-btn">+ Add subject</button>
+      <!-- 2-3-5-7 timeline -->
+      <div class="method-timeline">
+        <div class="timeline-track">
+          <div class="tl-node tl-node--exam">
+            <span class="tl-label">exam day</span>
+            <span class="tl-day">day 0</span>
+          </div>
+          <div class="tl-gap"><span>1d</span></div>
+          <div class="tl-node">
+            <span class="tl-label">4th review</span>
+            <span class="tl-day">−1 day</span>
+          </div>
+          <div class="tl-gap"><span>2d</span></div>
+          <div class="tl-node">
+            <span class="tl-label">3rd review</span>
+            <span class="tl-day">−3 days</span>
+          </div>
+          <div class="tl-gap"><span>3d</span></div>
+          <div class="tl-node">
+            <span class="tl-label">2nd review</span>
+            <span class="tl-day">−6 days</span>
+          </div>
+          <div class="tl-gap"><span>5d</span></div>
+          <div class="tl-node">
+            <span class="tl-label">1st review</span>
+            <span class="tl-day">−11 days</span>
+          </div>
+          <div class="tl-gap"><span>7d</span></div>
+          <div class="tl-node">
+            <span class="tl-label">initial study</span>
+            <span class="tl-day">−18 days</span>
+          </div>
         </div>
-        <p class="field-hint">Add all the subjects you are studying for matric.</p>
       </div>
 
-      <div class="card" id="exam-card">
-        <h2 class="card-title">Exam dates <span class="optional-label">(optional)</span></h2>
-        <p class="field-hint">Your exam date is used to calculate all 5 study sessions automatically. Each subject needs one exam date.</p>
-        <div id="exam-list" class="exam-list"></div>
-        <div class="add-subject-row">
-          <select id="exam-subject-select" class="text-input select-input"></select>
-          <input type="date" id="exam-date-input" class="text-input date-input"/>
-          <button class="btn btn-secondary" id="add-exam-btn">+ Add exam</button>
+      <div class="setup-grid">
+        <!-- subjects card -->
+        <div class="glass-card">
+          <div class="card-top">
+            <h2 class="card-title">subjects</h2>
+            <span class="pill-count" id="subject-count">0</span>
+          </div>
+          <div id="subject-list" class="item-list"></div>
+          <div class="input-group">
+            <input type="text" id="subject-input" class="g-input" placeholder="subject name…" maxlength="40"/>
+            <input type="color" id="subject-color" class="color-swatch" value="#f7c59f" title="choose colour"/>
+            <button class="g-btn g-btn--accent" id="add-subject-btn">add</button>
+          </div>
+        </div>
+
+        <!-- exam dates card -->
+        <div class="glass-card">
+          <div class="card-top">
+            <h2 class="card-title">exam dates</h2>
+            <span class="card-hint">one per paper</span>
+          </div>
+          <div id="exam-list" class="item-list"></div>
+          <div class="input-group">
+            <select id="exam-subject-select" class="g-input g-select"></select>
+            <input type="date" id="exam-date-input" class="g-input g-date"/>
+            <button class="g-btn g-btn--ghost" id="add-exam-btn">add</button>
+          </div>
         </div>
       </div>
 
-      <div class="action-row">
-        <button class="btn btn-big" id="generate-btn">Generate my timetable →</button>
+      <div class="generate-wrap">
+        <button class="generate-btn" id="generate-btn">
+          <span>generate timetable</span>
+          <span class="btn-arrow">→</span>
+        </button>
       </div>
     </section>
 
-    <!-- TAB: TIMETABLE -->
+    <!-- TIMETABLE TAB -->
     <section id="tab-timetable" class="tab-panel" role="tabpanel">
-      <div class="panel-intro">
-        <h1 class="panel-title">Your revision timetable</h1>
-        <p class="panel-sub">Sessions spaced using the 2-3-5-7 method. Start a Pomodoro timer on any session, or print a wall calendar.</p>
+      <div class="panel-hero panel-hero--sm">
+        <p class="hero-eyebrow">your schedule</p>
+        <h1 class="hero-title">revision<br>timeline</h1>
       </div>
-
-      <!-- Exam countdown banner -->
       <div id="countdown-timetable" class="countdown-row" style="display:none"></div>
-
-      <div class="timetable-controls">
-        <button class="btn btn-secondary" id="print-btn">🖨 Print calendar</button>
-        <button class="btn btn-secondary" id="export-btn">⬇ Export CSV</button>
+      <div class="toolbar">
+        <button class="g-btn g-btn--ghost" id="print-btn">print calendar</button>
+        <button class="g-btn g-btn--ghost" id="export-btn">export csv</button>
       </div>
-
       <div id="timetable-output" class="timetable-output"></div>
     </section>
 
-    <!-- TAB: TRACKER -->
+    <!-- PROGRESS TRACKER TAB -->
     <section id="tab-tracker" class="tab-panel" role="tabpanel">
-      <div class="panel-intro">
-        <h1 class="panel-title">Track your progress</h1>
-        <p class="panel-sub">Mark sessions as done. Your overall completion is shown below.</p>
+      <div class="panel-hero panel-hero--sm">
+        <p class="hero-eyebrow">keep going</p>
+        <h1 class="hero-title">your<br>progress</h1>
       </div>
-
-      <!-- Exam countdown banner -->
       <div id="countdown-tracker" class="countdown-row" style="display:none"></div>
-
-      <div class="progress-summary-row">
-        <div class="stat-card">
-          <span class="stat-label">Total sessions</span>
-          <span class="stat-value" id="stat-total">0</span>
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="stat-val" id="stat-total">0</span>
+          <span class="stat-lbl">total sessions</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Completed</span>
-          <span class="stat-value" id="stat-done">0</span>
+        <div class="stat-box stat-box--green">
+          <span class="stat-val" id="stat-done">0</span>
+          <span class="stat-lbl">done</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Remaining</span>
-          <span class="stat-value" id="stat-remaining">0</span>
+        <div class="stat-box stat-box--amber">
+          <span class="stat-val" id="stat-remaining">0</span>
+          <span class="stat-lbl">remaining</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">% Done</span>
-          <span class="stat-value" id="stat-percent">0%</span>
+        <div class="stat-box stat-box--accent">
+          <span class="stat-val" id="stat-percent">0%</span>
+          <span class="stat-lbl">complete</span>
         </div>
       </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progress-bar"></div>
+      <div class="prog-track">
+        <div class="prog-fill" id="progress-bar"></div>
       </div>
       <div id="tracker-output" class="tracker-output"></div>
     </section>
 
   </main>
 
-  <!-- ===== TOAST ===== -->
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
-  <!-- Pomodoro modal injected by pomodoro.js -->
+  <!-- Pomodoro modal (soft) -->
+  <div id="pomodoro-modal" class="pom-overlay">
+    <div class="pom-box">
+      <button class="pom-close" id="pom-close">close</button>
+      <div class="pom-subject" id="pom-subject">subject</div>
+      <div class="pom-mode-label" id="pom-mode-label">focus time</div>
+      <div class="pom-ring-wrap">
+        <svg class="pom-ring" viewBox="0 0 200 200">
+          <circle class="pom-ring-bg" cx="100" cy="100" r="88"></circle>
+          <circle class="pom-ring-fill" cx="100" cy="100" r="88"></circle>
+        </svg>
+        <div class="pom-time-display" id="pom-timer">25:00</div>
+      </div>
+      <div class="pom-rounds" id="pom-rounds">focus · 1/4</div>
+      <div class="pom-controls">
+        <button class="g-btn g-btn--accent" id="pom-start">start</button>
+        <button class="g-btn g-btn--ghost" id="pom-reset">reset</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- ===== SCRIPTS ===== -->
   <script src="js/storage.js"></script>
   <script src="js/scheduler.js"></script>
   <script src="js/ui.js"></script>
