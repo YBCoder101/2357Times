@@ -73,32 +73,36 @@ function renderExamSubjectSelect(subjects) {
 
 /**
  * Render the list of saved exam dates.
- * @param {Array}    exams     - [{ subjectId, date }]
+ * @param {Array}    exams     - [{ id, subjectId, date, paper }]
  * @param {Array}    subjects
- * @param {Function} onRemove  - callback(index)
+ * @param {Function} onRemove  - callback(examId)
  */
 function renderExamList(exams, subjects, onRemove) {
   const container = document.getElementById('exam-list');
   container.innerHTML = '';
 
   if (exams.length === 0) {
-    container.innerHTML = '<p class="empty-hint">No exam dates added.</p>';
+    container.innerHTML = '<p class="empty-hint">No exam dates added yet.</p>';
     return;
   }
 
-  exams.forEach((exam, index) => {
-    const sub = subjects.find(s => s.id === exam.subjectId);
-    const name = sub ? sub.name : '?';
+  exams.forEach(exam => {
+    const sub   = subjects.find(s => s.id === exam.subjectId);
+    const name  = sub ? sub.name : '?';
+    const color = sub ? sub.color : '#888';
+    // Show paper label if set
+    const label = exam.paper ? `${name} — ${exam.paper}` : name;
+
     const item = document.createElement('div');
     item.className = 'exam-item';
     item.innerHTML = `
-      <span class="subject-dot" style="background:${sub ? sub.color : '#888'}"></span>
-      <span class="subject-name">${escapeHTML(name)}</span>
+      <span class="subject-dot" style="background:${color}"></span>
+      <span class="subject-name">${escapeHTML(label)}</span>
       <span class="exam-badge">Exam</span>
-      <span style="flex:1; font-size:13px; color:var(--ink-soft);">${formatDate(new Date(exam.date + 'T00:00:00'))}</span>
-      <button class="btn-icon" title="Remove" data-index="${index}">✕</button>
+      <span class="exam-date-text">${formatDate(new Date(exam.date + 'T00:00:00'))}</span>
+      <button class="btn-icon" title="Remove">✕</button>
     `;
-    item.querySelector('.btn-icon').addEventListener('click', () => onRemove(index));
+    item.querySelector('.btn-icon').addEventListener('click', () => onRemove(exam.id));
     container.appendChild(item);
   });
 }
@@ -204,11 +208,20 @@ function renderTracker(subjects, sessions, completed, onToggle) {
     return;
   }
 
-  subjects.forEach(subject => {
-    const subjectSessions = sessions.filter(s => s.subjectId === subject.id);
-    if (subjectSessions.length === 0) return;
+  // Group sessions by examId — each exam entry gets its own tracker block
+  const examGroups = {};
+  sessions.forEach(s => {
+    const key = s.examId || s.subjectId; // fallback for old data
+    if (!examGroups[key]) examGroups[key] = [];
+    examGroups[key].push(s);
+  });
 
-    const doneCount = subjectSessions.filter(s => completed.has(s.id)).length;
+  Object.values(examGroups).forEach(groupSessions => {
+    const first   = groupSessions[0];
+    const subject = subjects.find(s => s.id === first.subjectId);
+    if (!subject) return;
+
+    const doneCount = groupSessions.filter(s => completed.has(s.id)).length;
 
     const block = document.createElement('div');
     block.className = 'tracker-subject-block';
@@ -216,40 +229,31 @@ function renderTracker(subjects, sessions, completed, onToggle) {
     block.innerHTML = `
       <div class="tracker-subject-header">
         <span class="subject-dot" style="background:${subject.color}; width:14px; height:14px;"></span>
-        <span class="tracker-subject-name">${escapeHTML(subject.name)}</span>
-        <span class="tracker-progress-text">${doneCount} / ${subjectSessions.length} done</span>
+        <span class="tracker-subject-name">${escapeHTML(first.subjectName)}</span>
+        <span class="tracker-progress-text">${doneCount} / ${groupSessions.length} done</span>
       </div>
     `;
 
-    subjectSessions.forEach(session => {
-      const isDone = completed.has(session.id);
+    groupSessions.forEach(session => {
+      const isDone    = completed.has(session.id);
       const isOverdue = !isDone && isPast(session.dateISO);
 
       let badgeClass = 'badge-upcoming';
       let badgeText  = 'Upcoming';
-      if (isDone)      { badgeClass = 'badge-done';    badgeText = 'Done'; }
+      if (isDone)         { badgeClass = 'badge-done';    badgeText = 'Done'; }
       else if (isOverdue) { badgeClass = 'badge-overdue'; badgeText = 'Overdue'; }
 
       const row = document.createElement('div');
       row.className = `tracker-session-row ${isDone ? 'done' : ''}`;
       row.innerHTML = `
-        <input
-          type="checkbox"
-          class="session-checkbox"
-          data-id="${session.id}"
-          ${isDone ? 'checked' : ''}
-        />
+        <input type="checkbox" class="session-checkbox" data-id="${session.id}" ${isDone ? 'checked' : ''}/>
         <div class="session-info">
           <div class="session-subject">${escapeHTML(session.roundLabel)}</div>
           <div class="session-date-info">${escapeHTML(session.dateDisplay)}</div>
         </div>
         <span class="session-status-badge ${badgeClass}">${badgeText}</span>
       `;
-
-      row.querySelector('input').addEventListener('change', e => {
-        onToggle(session.id, e.target.checked);
-      });
-
+      row.querySelector('input').addEventListener('change', e => onToggle(session.id, e.target.checked));
       block.appendChild(row);
     });
 

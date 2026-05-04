@@ -1,22 +1,20 @@
 /* ============================================================
    scheduler.js
 
-   THE 2-3-5-7 METHOD — counting backwards from exam day:
+   THE 2-3-5-7 METHOD (counting backwards from exam):
 
-   Exam day         = Day 0
-   4th revision     = Exam - 1   (day before exam)
-   3rd revision     = Exam - 3   (2 days before 4th revision)
-   2nd revision     = Exam - 6   (3 days before 3rd revision)
-   1st revision     = Exam - 11  (5 days before 2nd revision)
-   Initial study    = Exam - 18  (7 days before 1st revision)
+   Exam - 1  day  = 4th revision
+   Exam - 3  days = 3rd revision  (2 days before 4th)
+   Exam - 6  days = 2nd revision  (3 days before 3rd)
+   Exam - 11 days = 1st revision  (5 days before 2nd)
+   Exam - 18 days = Initial study (7 days before 1st)
 
-   Example: Biology exam 25 May
-     Initial study  → 25 - 18 =  7 May
-     1st revision   → 25 - 11 = 14 May
-     2nd revision   → 25 - 6  = 19 May
-     3rd revision   → 25 - 3  = 22 May
-     4th revision   → 25 - 1  = 24 May
-     Exam           → 25 May
+   Each EXAM ENTRY generates its own independent set of 5 sessions.
+   A subject with 2 exams (e.g. Maths Paper 1 + Paper 2) gets 10
+   sessions total — 5 per paper.
+
+   Session IDs are keyed on exam.id (not just subjectId) so
+   multiple papers never clash.
    ============================================================ */
 
 const SESSION_PLAN = [
@@ -25,21 +23,17 @@ const SESSION_PLAN = [
   { offsetFromExam: 10,  label: '2nd revision',  round: 2 },
   { offsetFromExam: 5,  label: '3rd revision',  round: 3 },
   { offsetFromExam: 2,  label: '4th revision',  round: 4 },
-  { offsetFromExam: 0,  label: '4th revision',  round: 4 },
+  { offsetFromExam: 0,  label: '5th revision',  round: 5 },
 ];
 
 /* ── DATE HELPERS ───────────────────────────────────────────── */
 
 function subtractDays(date, days) {
-  const result = new Date(date);
-  result.setDate(result.getDate() - days);
-  return result;
+  const r = new Date(date); r.setDate(r.getDate() - days); return r;
 }
 
 function addDays(date, days) {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
+  const r = new Date(date); r.setDate(r.getDate() + days); return r;
 }
 
 function formatDate(date) {
@@ -58,15 +52,28 @@ function getDayName(date) {
 
 /* ── CORE SCHEDULER ─────────────────────────────────────────── */
 
-function generateSessionsForSubject(subject, examISO) {
-  const examDate = new Date(examISO + 'T00:00:00');
+/**
+ * Generate 5 sessions for one exam entry.
+ *
+ * @param {Object} subject  - { id, name, color }
+ * @param {Object} exam     - { id, subjectId, date, paper }
+ * @returns {Array}
+ */
+function generateSessionsForExam(subject, exam) {
+  const examDate   = new Date(exam.date + 'T00:00:00');
+  // If the subject has a paper label, include it in the display name
+  const displayName = exam.paper
+    ? `${subject.name} (${exam.paper})`
+    : subject.name;
 
   return SESSION_PLAN.map(plan => {
     const sessionDate = subtractDays(examDate, plan.offsetFromExam);
     return {
-      id:           `${subject.id}_round${plan.round}`,
+      // Key on exam.id so Paper 1 and Paper 2 sessions never collide
+      id:           `${exam.id}_round${plan.round}`,
       subjectId:    subject.id,
-      subjectName:  subject.name,
+      examId:       exam.id,
+      subjectName:  displayName,
       subjectColor: subject.color,
       round:        plan.round,
       roundLabel:   plan.label,
@@ -77,13 +84,23 @@ function generateSessionsForSubject(subject, examISO) {
   });
 }
 
+/**
+ * Generate all sessions for all subjects from all their exam dates.
+ * Each exam entry independently produces 5 sessions.
+ *
+ * @param {Array} subjects
+ * @param {Array} exams    - [{ id, subjectId, date, paper }]
+ * @returns {Array}        - all sessions sorted chronologically
+ */
 function generateAllSessions(subjects, exams) {
   const allSessions = [];
-  subjects.forEach(subject => {
-    const exam = exams.find(e => e.subjectId === subject.id);
-    if (!exam) return;
-    allSessions.push(...generateSessionsForSubject(subject, exam.date));
+
+  exams.forEach(exam => {
+    const subject = subjects.find(s => s.id === exam.subjectId);
+    if (!subject) return;
+    allSessions.push(...generateSessionsForExam(subject, exam));
   });
+
   allSessions.sort((a, b) => a.dateISO.localeCompare(b.dateISO));
   return allSessions;
 }
@@ -100,12 +117,16 @@ function groupSessionsByDate(sessions) {
 }
 
 function groupSessionsByWeek(sessions, exams = [], subjects = []) {
+  // Build exam chip data keyed by date
   const examsByDate = {};
   exams.forEach(exam => {
     if (!examsByDate[exam.date]) examsByDate[exam.date] = [];
     const sub = subjects.find(s => s.id === exam.subjectId);
+    const label = exam.paper
+      ? `${sub ? sub.name : '?'} (${exam.paper})`
+      : (sub ? sub.name : '?');
     examsByDate[exam.date].push({
-      subjectName:  sub ? sub.name  : '?',
+      subjectName:  label,
       subjectColor: sub ? sub.color : '#888',
     });
   });
@@ -121,7 +142,7 @@ function groupSessionsByWeek(sessions, exams = [], subjects = []) {
   const sessionsByDate = groupSessionsByDate(sessions);
 
   function getMondayISO(isoDate) {
-    const d   = new Date(isoDate + 'T00:00:00');
+    const d = new Date(isoDate + 'T00:00:00');
     const day = d.getDay();
     d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
     return toISODate(d);
@@ -155,13 +176,8 @@ function groupSessionsByWeek(sessions, exams = [], subjects = []) {
 
 /* ── UTILITY ────────────────────────────────────────────────── */
 
-function isToday(isoDate) {
-  return isoDate === toISODate(new Date());
-}
-
-function isPast(isoDate) {
-  return isoDate < toISODate(new Date());
-}
+function isToday(isoDate) { return isoDate === toISODate(new Date()); }
+function isPast(isoDate)  { return isoDate < toISODate(new Date()); }
 
 function buildCSV(sessions, completed) {
   const header = 'Subject,Session,Date,Status\n';
